@@ -10,6 +10,9 @@ from os.path import join
 from multiprocessing.pool import ThreadPool as Pool
 from validators.url import url  as validate_url
 
+import pycurl
+import StringIO
+
 
 def parse_url(url):
     """Parses the string of a url and returns as a string. """
@@ -98,6 +101,61 @@ def valid_download_html(url, savepath='/Volumes/Mac/GoGuardianHTMLS', ext='txt')
     return old_url, True
 
 
+def download_multiple_html_with_pycurl(urls, savepath='/Volumes/Mac/Insight/GoGuardianHTMLS-9-17-2015-b', ext='txt'):
+    """Takes a list of urls and downloads and writes a save path.
+    Parameters:
+        urls (list): list of url strings
+        savepath (str): path to save location
+        ext (str) extension to the string
+    Returns None
+    """
+
+    # set up a curl object and set up some options
+    curl = pycurl.Curl()
+    curl.setopt(pycurl.FOLLOWLOCATION, 1)
+    curl.setopt(pycurl.MAXREDIRS, 5)
+
+    # use a for loop to get the urls and download
+    for url in urls:
+        # place holder for the old url
+        old_url = url
+
+        # validate the url and append and http: to it if needed
+        valid = validate_url(url)
+
+        # if not add an http.
+        if not valid:
+            url = ''.join(['http://', url])
+
+        # set the url
+        curl.setopt(pycurl.URL, url)
+
+        # try to download it and save it.
+        try:
+            # create a new string io object and set it.
+            b = StringIO.StringIO()
+            curl.setopt(pycurl.WRITEFUNCTION, b.write)
+
+            # perform the getting and streaming
+            curl.perform()
+            response = b.getvalue()
+            b.close()
+
+            # handle download
+            # Build the file name
+            filename = rename_url(old_url, suffix='')
+            filename = '.'.join([filename, ext])
+            filename = join(savepath, filename)
+
+            # save the file
+            with open(filename, 'w') as f:
+                f.write(response)
+        except:
+            pass
+
+    curl.close()
+
+
 ########################################################################################################################
 # Below are functions for getting the links
 ########################################################################################################################
@@ -124,10 +182,10 @@ def get_soup_from_text(text):
     """
     # open the text and get out the soup
     with open(text, 'r') as f:
-        soup = BeautifulSoup(text)
+        soup = BeautifulSoup(f)
 
     # strip out the javascript and other stuff
-    for script in soup(['script','style']):
+    for script in soup(['script', 'style']):
         script.extract()
     return soup
 
@@ -141,5 +199,3 @@ def get_links(soup):
 
     """
     return [link.get_text().replace('\n', '').strip() for link in soup.find_all('a')]
-
-

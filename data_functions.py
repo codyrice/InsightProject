@@ -20,3 +20,9 @@ def count_columns(df, column):
     counts = df[column].value_counts()
     hist =  pd.DataFrame({'Category': counts.index, 'Counts':counts})
     return hist
+
+
+def shuffle_dataframe(df):
+    """shuffles the order of a data frame using the np.permutation """
+    df = df.copy()    # copy the index.
+    return df.iloc[np.random.permutation(len(df))]
