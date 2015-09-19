@@ -8,7 +8,9 @@ import requests
 from bs4 import BeautifulSoup
 from os.path import join
 from multiprocessing.pool import ThreadPool as Pool
-from validators.url import url  as validate_url
+from validators.url import url as validate_url
+import string
+
 
 import pycurl
 import StringIO
@@ -92,9 +94,6 @@ def valid_download_html(url, savepath='/Volumes/Mac/GoGuardianHTMLS', ext='txt')
     filename = '.'.join([filename, ext])
     filename = join(savepath, filename)
 
-    # print
-    print filename
-
     # save the file to desk
     with open(filename, 'w') as f:
         f.write(response)
@@ -176,6 +175,7 @@ def get_soup(url):
 
 def get_soup_from_text(text):
     """
+    Extracts soup from the text and removes script and style.
     Parameters:
         text (str): location of the website.
     :return: soup
@@ -190,12 +190,60 @@ def get_soup_from_text(text):
     return soup
 
 
-def get_links(soup):
+def get_tag_text(soup, tag='a'):
     """
     Parameters:
         soup (BeautifulSoup ): the soup.
+        tag (str): the tag to get
     Return:
         list of the link text.
 
     """
-    return [link.get_text().replace('\n', '').strip() for link in soup.find_all('a')]
+
+    # search for all the tags, get the text and place in a list.
+    tags = [t.get_text().strip() for t in soup.find_all(tag)]
+    number = len(tags)  # get the number
+
+    # conver to a large string
+    text = ' '.join(tags)
+
+    # do encode decode to remove all the unusual text
+    text = text.encode('utf8').decode('unicode_escape').encode('ascii', 'ignore')
+
+    # get rid of the puctuation
+    for p in string.punctuation:
+        text = text.replace(p, ' ')
+    text = text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
+
+    # split the string
+    return text, number
+
+
+def get_paragraphs(soup):
+    """ gets the body text"""
+    return get_tag_text(soup, tag='p')
+
+
+def get_title(soup):
+    """ gets the body text"""
+    return get_tag_text(soup, tag='title')
+
+
+def get_links(soup):
+    """ gets the body text"""
+    return get_tag_text(soup)
+
+
+def get_images(soup):
+    """ gets the body text"""
+    return get_tag_text(soup, tag='img')
+
+
+def get_meta(soup):
+    """ gets the body text"""
+    return get_tag_text(soup, tag='meta')
+
+
+def get_header(soup):
+    """ gets the body text"""
+    return get_tag_text(soup, tag='header')
