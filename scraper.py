@@ -156,7 +156,7 @@ def download_multiple_html_with_pycurl(urls, savepath='/Volumes/Mac/Insight/GoGu
 
 
 ########################################################################################################################
-# Below are functions for getting the links
+# Below are functions for using Beatiful soup.
 ########################################################################################################################
 
 
@@ -190,60 +190,68 @@ def get_soup_from_text(text):
     return soup
 
 
-def get_tag_text(soup, tag='a'):
+def get_tag_text(soup, tag='a', count_tags = True):
     """
     Parameters:
         soup (BeautifulSoup ): the soup.
         tag (str): the tag to get
+        count_tags (bool): count the number of tags if true.
     Return:
         list of the link text.
-
     """
-
     # search for all the tags, get the text and place in a list.
     tags = [t.get_text().strip() for t in soup.find_all(tag)]
-    number = len(tags)  # get the number
 
-    # conver to a large string
+    # convert to a large string
     text = ' '.join(tags)
 
     # do encode decode to remove all the unusual text
     text = text.encode('utf8').decode('unicode_escape').encode('ascii', 'ignore')
 
-    # get rid of the puctuation
+    # get rid of the punctuation
     for p in string.punctuation:
         text = text.replace(p, ' ')
     text = text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
 
-    # split the string
-    return text, number
+    # Count the tags if need and return.
+    if count_tags:
+        number = len(tags)  # get the number
+        return text, number
+    else:
+        return text
 
 
-def get_paragraphs(soup):
+def get_paragraphs(soup,count_tags = True):
     """ gets the body text"""
-    return get_tag_text(soup, tag='p')
+    tag = 'p'
+    return get_tag_text(soup, tag, count_tags)
 
 
-def get_title(soup):
+def get_title(soup, count_tags = True):
     """ gets the body text"""
-    return get_tag_text(soup, tag='title')
+    tag='title'
+    return get_tag_text(soup,tag, count_tags)
 
 
-def get_links(soup):
+def get_links(soup, count_tags = True):
     """ gets the body text"""
-    return get_tag_text(soup)
+    tag = 'a'
+    return get_tag_text(soup,tag, count_tags)
 
 
-def get_images(soup):
+def get_images(soup, count_tags = True):
     """ gets the body text"""
-    return get_tag_text(soup, tag='img')
+    tag='img'
+    return get_tag_text(soup,tag, count_tags)
 
 
-def get_meta(soup):
+def get_meta(soup, count_tags = True):
     """ gets the body text"""
-    return get_tag_text(soup, tag='meta')
+    tag='meta'
+    return get_tag_text(soup,tag, count_tags)
 
 
-def get_header(soup):
+def get_header(soup,count_tags = True):
     """ gets the body text"""
-    return get_tag_text(soup, tag='header')
+    tag = 'header'
+    return get_tag_text(soup,tag, count_tags)
