@@ -48,3 +48,19 @@ def create_map(df, key, value):
         value (str): column for the values
     returns (dict): dict with key:values"""
     return dict(zip(df[key], df[value]))
+
+
+def subselect_categories(df, column, n, shuffle=True):
+    """ subselects a data frame and returns n from each category.
+    Parameters:
+        df (pandas dataframe): the dataframe.
+        column (str) the string to groupby.
+        n (int): the number to take from each.
+        shuffle(bool): Tag to determine if should be suffeld.
+    Returns:
+        dataframe"""
+
+    df = df.copy()
+    if shuffle:
+        df = shuffle_dataframe(df)
+    return df.groupby(column).apply(select_n,n)
