@@ -11,9 +11,9 @@ from multiprocessing.pool import ThreadPool as Pool
 from validators.url import url as validate_url
 import string
 
-
 import pycurl
 import StringIO
+from requests.exceptions import Timeout, ReadTimeout, TooManyRedirects, ConnectionError
 
 
 def parse_url(url):
@@ -66,7 +66,7 @@ def download_multiple_htmls(urls, threads=8):
     pool.map(download_html, urls)
 
 
-def valid_download_html(url, savepath='/Volumes/Mac/GoGuardianHTMLS', ext='txt'):
+def valid_download_html(url, savepath='/Volumes/Mac/GoGuardianHTMLS', ext='txt', validate=False):
     """Validates a url prior to attempting to download
     Parameters:
         url (str): the url name.
@@ -74,18 +74,19 @@ def valid_download_html(url, savepath='/Volumes/Mac/GoGuardianHTMLS', ext='txt')
         tupple: Url (url), downloaded (bool)"""
 
     # determine if the url is valid.
-    old_url = url  # place holder for the url tags
+    old_url = url  # place hoder for the url tags
 
-    valid = validate_url(url)
-
-    # if not valid download add an http.
-    if not valid:
-        url = ''.join(['http://', url])
+    # If validate true, validate the url and add a protocol if needed.
+    if validate:
+        valid = validate_url(url)
+        # if not valid download add an http.
+        if not valid:
+            url = ''.join(['http://', url])
 
     # try to validate it.
     try:
-        response = requests.get(url).content
-    except requests.ConnectionError:  # fails return the tupple
+        response = requests.get(url, timeout=(10, 10)).content  # allow to time out for only 10 seconds.
+    except (Timeout, ReadTimeout, TooManyRedirects, ConnectionError):  # fails return the tupple
         return old_url, False
 
     # Build the file name
@@ -155,6 +156,20 @@ def download_multiple_html_with_pycurl(urls, savepath='/Volumes/Mac/Insight/GoGu
     curl.close()
 
 
+def make_url_valid(url):
+    """Validates a url, and add an http protocol if not valid.
+    Parameters:
+        url (str): a url string.
+    Return:
+        new url(str)
+    """
+    valid = validate_url(url)
+    # if not valid download add an http.
+    if not valid:
+        url = ''.join(['http://', url])
+    return url
+
+
 ########################################################################################################################
 # Below are functions for using Beatiful soup.
 ########################################################################################################################
@@ -190,7 +205,7 @@ def get_soup_from_text(text):
     return soup
 
 
-def get_tag_text(soup, tag='a', count_tags = True):
+def get_tag_text(soup, tag='a', count_tags=True):
     """
     Parameters:
         soup (BeautifulSoup ): the soup.
@@ -221,37 +236,37 @@ def get_tag_text(soup, tag='a', count_tags = True):
         return text
 
 
-def get_paragraphs(soup,count_tags = True):
+def get_paragraphs(soup, count_tags=True):
     """ gets the body text"""
     tag = 'p'
     return get_tag_text(soup, tag, count_tags)
 
 
-def get_title(soup, count_tags = True):
+def get_title(soup, count_tags=True):
     """ gets the body text"""
-    tag='title'
-    return get_tag_text(soup,tag, count_tags)
+    tag = 'title'
+    return get_tag_text(soup, tag, count_tags)
 
 
-def get_links(soup, count_tags = True):
+def get_links(soup, count_tags=True):
     """ gets the body text"""
     tag = 'a'
-    return get_tag_text(soup,tag, count_tags)
+    return get_tag_text(soup, tag, count_tags)
 
 
-def get_images(soup, count_tags = True):
+def get_images(soup, count_tags=True):
     """ gets the body text"""
-    tag='img'
-    return get_tag_text(soup,tag, count_tags)
+    tag = 'img'
+    return get_tag_text(soup, tag, count_tags)
 
 
-def get_meta(soup, count_tags = True):
+def get_meta(soup, count_tags=True):
     """ gets the body text"""
-    tag='meta'
-    return get_tag_text(soup,tag, count_tags)
+    tag = 'meta'
+    return get_tag_text(soup, tag, count_tags)
 
 
-def get_header(soup,count_tags = True):
+def get_header(soup, count_tags=True):
     """ gets the body text"""
     tag = 'header'
-    return get_tag_text(soup,tag, count_tags)
+    return get_tag_text(soup, tag, count_tags)

@@ -1,7 +1,7 @@
 __author__ = 'christopherrivera'
 
 ########################################################################################################################
-# This contains some functions for manipulating the data, plot or what ever.
+# This contains some functions for manipulating the data.
 ########################################################################################################################
 
 import pandas as pd
@@ -38,3 +38,13 @@ def select_n(group_df, n=200):
         return group_df.iloc[:n, :]
     else:
         return group_df
+
+
+def create_map(df, key, value):
+    """Takes two columns of a df and returns a dictionary for mapping
+    Parameters:
+        df (pd.DataFrame): pandas dataframe
+        key (str): column for key
+        value (str): column for the values
+    returns (dict): dict with key:values"""
+    return dict(zip(df[key], df[value]))
