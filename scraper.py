@@ -270,3 +270,36 @@ def get_header(soup, count_tags=True):
     """ gets the body text"""
     tag = 'header'
     return get_tag_text(soup, tag, count_tags)
+
+
+def scrape_all_text(text):
+    """ Uses beautiful soup to scrape all the text from an html text document.
+    Parameters
+        text (str): Path to the text file (html)
+    Returns:
+        (str): a string with all the text for parsing later by sklearn.
+    """
+
+    soup = get_soup_from_text(text)
+
+    # search for all the tags, get the text and place in a list.
+    def get_tag_text(tag):
+        # internal function to get the text for a given text and return as a text.
+        return ' '.join([t.get_text() for t in soup.find_all(tag)])
+
+    # use get_tag_text to scrape for all the desired parts: paragraphs, title, links, img, metadata and header.
+    # The join together
+    tags = [get_tag_text(tagd) for tagd in ['p', 'title','a','img','meta','header']]
+    text = ' '.join(tags)
+
+    # do encode decode to remove all the unusual text
+    text = text.encode('utf8').decode('unicode_escape').encode('ascii', 'ignore')
+
+    # get rid of the punctuation
+    for p in string.punctuation:
+        text = text.replace(p, ' ')
+
+    # replace some unwanted stuff.
+    text = text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
+
+    return text
