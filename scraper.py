@@ -274,7 +274,7 @@ def get_header(soup, count_tags=True):
 
 def scrape_all_text(text):
     """ Uses beautiful soup to scrape all the text from an html text document.
-    Parameters
+    Parameters. This gets the text for the paragraphs, title, links, img, meta data and header.
         text (str): Path to the text file (html)
     Returns:
         (str): a string with all the text for parsing later by sklearn.
@@ -287,9 +287,8 @@ def scrape_all_text(text):
         # internal function to get the text for a given text and return as a text.
         return ' '.join([t.get_text() for t in soup.find_all(tag)])
 
-    # use get_tag_text to scrape for all the desired parts: paragraphs, title, links, img, metadata and header.
-    # The join together
-    tags = [get_tag_text(tagd) for tagd in ['p', 'title','a','img','meta','header']]
+    # scrape for the desired text tag and join.
+    tags = [get_tag_text(tagd) for tagd in ['p', 'title', 'a', 'img', 'meta', 'header']]
     text = ' '.join(tags)
 
     # do encode decode to remove all the unusual text
@@ -303,3 +302,39 @@ def scrape_all_text(text):
     text = text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
 
     return text
+
+
+remove_strings = ' '.join([string.punctuation,'1234567890'])
+
+def scrape_text_and_count_tags(text):
+    """ Uses beautiful soup to scrape all the text from an html text document.
+    Parameters. This gets the text for the paragraphs, title, links, img, meta data and header. It also
+    counts the number of tags.  
+        text (str): Path to the text file (html)
+    Returns:
+        (str): a string with all the text for parsing later by sklearn.
+    """
+
+    soup = get_soup_from_text(text)
+    text = soup.get_text()
+
+    # Coun the then number of tags
+    def get_tag_count(tag):
+        # Counts the number of tags
+        return len(soup.find_all(tag))
+
+    tags = ['p', 'title', 'a', 'img', 'meta', 'header']
+    counts = [get_tag_count(t) for t in tags]
+
+    # do encode decode to remove all the unusual text
+    text = text.encode('utf8').decode('unicode_escape').encode('ascii', 'ignore')
+
+    # get rid of the punctuation
+
+    for p in remove_strings:
+        text = text.replace(p, ' ')
+
+    # replace some unwanted stuff.
+    text = text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
+    text_len = len(text.split())
+    return text, counts, text_len
