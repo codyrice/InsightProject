@@ -30,7 +30,7 @@ def plot_confusion_matrix(target, predicted, normalize=True):
     sns.set_context('talk')
     sns.set_style('white')
     confusion = compute_confusion_matrix(target, predicted, normalize)
-    ax = sns.heatmap(confusion, cmap='Blues')
+    ax = sns.heatmap(confusion, cmap='Blues',linewidths=.5)
     ax.set_xlabel('Predicted Label',size = 20)
     ax.set_ylabel('True Label',size =20)
     ax.tick_params(axis='both', labelsize=15)
