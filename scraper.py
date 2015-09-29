@@ -15,6 +15,8 @@ import pycurl
 import StringIO
 from requests.exceptions import Timeout, ReadTimeout, TooManyRedirects, ConnectionError
 
+remove_strings = ' '.join([string.punctuation,'1234567890'])
+
 
 def parse_url(url):
     """Parses the string of a url and returns as a string. """
@@ -304,7 +306,7 @@ def scrape_all_text(text):
     return text
 
 
-remove_strings = ' '.join([string.punctuation,'1234567890'])
+
 
 def scrape_text_and_count_tags(text):
     """ Uses beautiful soup to scrape all the text from an html text document.
