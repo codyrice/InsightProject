@@ -6,19 +6,26 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from data_functions import *
-
+from stats import *
 ########################################################################################################################
 # This contains functions for plotting.
 ########################################################################################################################
 
 
 def compute_confusion_matrix(target, predicted, normalize=True):
-    """ returns a confusion matrix as a data frame with labels"""
+    """ returns a confusion matrix as a data frame with labels
+    Parameters:
+        target (array): The values that are predicted.
+        predicted (array): predicted values.
+        normalize (bool): If True, Normalize
+    Returns (DataFrame): df with the confusion matrix.
+    """
 
-    # get the labels and get the unique values sort.
+    # Determine the uniqu values in the target list, sort them and assign as labels.
     labels = np.unique(list(target))
     labels.sort()
-    # do calcs
+
+    # Compute the confusion matrix, place into data frame and normailize if desired.
     confusion = metrics.confusion_matrix(target, predicted, labels)
     data = DataFrame(confusion, index=labels, columns=labels)
     if normalize:
@@ -26,12 +33,13 @@ def compute_confusion_matrix(target, predicted, normalize=True):
     return data
 
 
-def plot_confusion_matrix(target, predicted, normalize=True, cmap='Blues'):
+def plot_confusion_matrix(target, predicted, normalize=True, cbar=True, cmap='Blues'):
     """plots a heatmap of the confusion matrix. """
+
     sns.set_context('talk')
     sns.set_style('white')
     confusion = compute_confusion_matrix(target, predicted, normalize)
-    ax = sns.heatmap(confusion, cmap=cmap, linewidths=.5)
+    ax = sns.heatmap(confusion, cmap=cmap, linewidths=.5, vmin=0, vmax=1, cbar=cbar)
     ax.set_xlabel('Predicted Label', size=20)
     ax.set_ylabel('True Label', size=20)
     ax.tick_params(axis='both', labelsize=15)
@@ -44,21 +52,6 @@ def plot_shuffled_confusion_matrix(y_test, normalize=True, cmap='Blues'):
 
     # plot and return axis
     return plot_confusion_matrix(y_test, y_test_shuffled, normalize, cmap)
-
-
-def calculate_accuracy_by_category(y_test, predicted):
-    """Calculates the accuracy of each by category. This is used for the outcome of a classifier.
-    Parameters:
-        y_test (array): the y_test
-        predicted (array): the predicted values
-    Returns:
-        A data frame with the predicted values"""
-
-    df = DataFrame({'Target': y_test, 'Predicted': predicted})
-    df['Score'] = df.Target == df.Predicted
-    df = df.groupby('Target').apply(lambda x: 100.0 * sum(x.Score) / len(x))
-    df.sort()
-    return df
 
 
 def plot_accuracy_by_category(y_test, predicted):
@@ -82,43 +75,6 @@ def plot_accuracy_by_category(y_test, predicted):
     return ax
 
 
-def shuffle_predict(y_test):
-    """Shuffles labeles and caluclates the number that are correct. """
-    return y_test == shuffle_dataframe(y_test)
-
-
-def predict_random(y_test, n=1000):
-    """ Uses boostrapping to compute the expected prediction by chance.
-    Parameters:
-        y_test (array): Labels
-        n (int): the number of times to do shuffle.
-    Returns:
-        Series containg the accuracy."""
-
-    samples = np.array([np.sum(shuffle_predict(y_test)) for i in xrange(n)]) * 100.0 / len(y_test)
-    return np.mean(samples), np.std(samples)
-
-
-def predict_random_category(y_test, n=1000):
-    """ Uses boostrapping to compute the expected prediction by chance for each category.
-    Parameters:
-        y_test (array): Labels
-        n (int): the number of times randomize.
-    Returns:
-        Series containg the accuracy for each class.."""
-
-    # Create a data frame with random predictions.
-    random_ = DataFrame({i: shuffle_predict(y_test) for i in xrange(n)})
-    random_.index = y_test
-
-    # Calculate the random and
-    random_ = 1.0 * random_.sum(axis=1) / n
-    grouped = random_.groupby(level=0)
-    mean = grouped.mean() * 100.0
-    sd = grouped.std() * 100.0
-    return mean, sd
-
-
 def plot_random_predictions(y_test, n=1000):
     """ Plot the random data.
     Parameters:
@@ -136,3 +92,9 @@ def plot_random_predictions(y_test, n=1000):
     ax.tick_params(axis='both', labelsize=20)
     plt.xlim(0, 100)
     return ax
+
+
+def set_style():
+    """ Uses seaborn to set a simple style for plots."""
+    sns.set(context='talk', style='white', font='Open Sans',
+            font_scale=1.8)
