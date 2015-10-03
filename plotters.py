@@ -12,37 +12,26 @@ from stats import *
 ########################################################################################################################
 
 
-def compute_confusion_matrix(target, predicted, normalize=True):
-    """ returns a confusion matrix as a data frame with labels
+def plot_confusion_matrix(target, predicted, normalize=True, cbar=True, cmap='Blues', sort=True):
+    """plots a heatmap of the confusion matrix.
     Parameters:
-        target (array): The values that are predicted.
-        predicted (array): predicted values.
-        normalize (bool): If True, Normalize
-    Returns (DataFrame): df with the confusion matrix.
-    """
+        target(pd.Series): the target values
+        predict (pd.Series): the predicted values.
+        normalize(bool): If true, normalize
+        cbar(bool): if false, no color bar.
+        cmap(str): color map to use.
+    Return (plt.axes) the axes of the object.
+        """
 
-    # Determine the uniqu values in the target list, sort them and assign as labels.
-    labels = np.unique(list(target))
-    labels.sort()
-
-    # Compute the confusion matrix, place into data frame and normailize if desired.
-    confusion = metrics.confusion_matrix(target, predicted, labels)
-    data = DataFrame(confusion, index=labels, columns=labels)
-    if normalize:
-        data = data.apply(lambda x: x / np.sum(x), axis=1)
-    return data
-
-
-def plot_confusion_matrix(target, predicted, normalize=True, cbar=True, cmap='Blues'):
-    """plots a heatmap of the confusion matrix. """
-
+    # caluculate the confusion matrix.
+    confusion = compute_confusion_matrix(target, predicted, normalize, sort)
+    # set up plot.
     sns.set_context('talk')
     sns.set_style('white')
-    confusion = compute_confusion_matrix(target, predicted, normalize)
     ax = sns.heatmap(confusion, cmap=cmap, linewidths=.5, vmin=0, vmax=1, cbar=cbar)
-    ax.set_xlabel('Predicted Label', size=20)
-    ax.set_ylabel('True Label', size=20)
-    ax.tick_params(axis='both', labelsize=15)
+    ax.set_xlabel('Predicted Label', size=24)
+    ax.set_ylabel('True Label', size=24)
+    ax.tick_params(axis='both', labelsize=22)
     return ax
 
 
@@ -98,3 +87,34 @@ def set_style():
     """ Uses seaborn to set a simple style for plots."""
     sns.set(context='talk', style='white', font='Open Sans',
             font_scale=1.8)
+
+
+def plot_accuracy_with_random_by_category(true, predicted, sort =True):
+    """plots the random
+    Parameters:
+        true (array): the observed values
+        predicted (array): the observed values.
+        sort (bool): if true sort by the
+    Returns:
+        res, ax
+        """
+    # compute the values
+    res = calcuate_accuracy_above_random_chance(true, predicted, sort)
+
+    # set styles
+    sns.set_style('white')
+    sns.set_context('talk')
+
+    # axes
+    ax = sns.barplot(x = 'Model', y= 'Category', data = res, color ='#c0cdf3')
+    sns.barplot(x = 'Random', y= 'Category', data =res, color ='#4f73dd', ax=ax)
+
+    # configure the plot details
+    plt.xlim(0,100)
+    plt.xlabel('Accuracy (%)', size =24)
+    plt.ylabel('')
+    ax.tick_params(axis='both', labelsize=22)
+    sns.despine()
+
+    return  ax,res
+

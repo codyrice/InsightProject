@@ -2,6 +2,7 @@ __author__ = 'christopherrivera'
 
 from pandas import DataFrame
 from data_functions import *
+from sklearn import metrics
 
 
 def predict_random_category(y_test, n=1000):
@@ -56,11 +57,12 @@ def calculate_accuracy_by_category(y_test, predicted):
     return df
 
 
-def calcuate_accuracy_above_random_chance(true, predicted):
+def calcuate_accuracy_above_random_chance(true, predicted, sort=True):
     """Calculates the random distribution.
     Parameters:
         true (array): the observed values
         predicted (array): the observed values.
+        sort (bool): if true sort by the
     Returns:
         dataframe
         """
@@ -71,12 +73,47 @@ def calcuate_accuracy_above_random_chance(true, predicted):
     if not isinstance(predicted, pd.Series):
         predicted = pd.Series(predicted)
 
-    # calculate the accuracy
+    # calculate the accuracy and random accuracy
     accuracy = calculate_accuracy_by_category(true, predicted)
     random_accuracy = predict_random_category(true)[0]  # only get the mean values
 
     # create a new data frame to hold the data, and sort
     data = pd.DataFrame({'Model': accuracy, 'Random': random_accuracy})
     data.reset_index(inplace=True)
-    data.sort('index', inplace=True)
+
+    #change the names of the columns:
+    data.columns = ['Category', 'Model', 'Random']
+    if sort:
+        data.sort('Model', inplace=True, ascending = False)
+
     return data
+
+
+def compute_confusion_matrix(target, predicted, normalize=True, sort = True):
+    """ returns a confusion matrix as a data frame with labels
+    Parameters:
+        target (array): The values that are predicted.
+        predicted (array): predicted values.
+        normalize (bool): If True, Normalize
+        normalize (bool): If true sort by value.
+    Returns (DataFrame): df with the confusion matrix.
+    """
+
+    # Determine the uniqu values in the target list, sort them and assign as labels.
+    labels = np.unique(list(target))
+    labels.sort()
+
+    # Compute the confusion matrix, place into data frame and normailize if desired.
+    confusion = metrics.confusion_matrix(target, predicted, labels)
+    confusion = DataFrame(confusion, index=labels, columns=labels)
+    if normalize:
+        confusion = confusion.apply(lambda x: x / np.sum(x), axis=1)
+
+    # if sort is true: find the max value for each and then sort, the confusion matrix
+    if sort:
+        #get the max values, order and then use to order the confusion matrix on both axes
+        max_values =confusion.max(axis = 1)
+        max_values.sort(inplace = True, ascending=False)
+        order = max_values.index
+        confusion = confusion.loc[order,order]
+    return confusion
