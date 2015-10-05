@@ -63,4 +63,21 @@ def subselect_categories(df, column, n, shuffle=True):
     df = df.copy()
     if shuffle:
         df = shuffle_dataframe(df)
-    return df.groupby(column).apply(select_n,n)
+    return df.groupby(column).apply(select_n, n)
+
+
+def sort_df_column(df, column, n=3, ascending=False):
+    """Takes a column and sorts it and returns the top n.
+    Parameters:
+        df (dataframe)
+        column (str): the column to sort.
+        n (int): the number to return
+        ascending (bool): sort order
+    Returns:
+        Series: a single series. """
+    series = df.copy()
+
+    series = pd.Series(series[column])
+
+    series.sort(inplace=True, ascending=ascending)
+    return series.iloc[:n]

@@ -89,7 +89,7 @@ def set_style():
             font_scale=1.8)
 
 
-def plot_accuracy_with_random_by_category(true, predicted, sort =True):
+def plot_accuracy_with_random_by_category(true, predicted, sort=True):
     """plots the random
     Parameters:
         true (array): the observed values
@@ -106,15 +106,39 @@ def plot_accuracy_with_random_by_category(true, predicted, sort =True):
     sns.set_context('talk')
 
     # axes
-    ax = sns.barplot(x = 'Model', y= 'Category', data = res, color ='#c0cdf3')
-    sns.barplot(x = 'Random', y= 'Category', data =res, color ='#4f73dd', ax=ax)
+    ax = sns.barplot(x='Model', y='Category', data=res, color='#c0cdf3')
+    sns.barplot(x='Random', y='Category', data=res, color='#4f73dd', ax=ax)
 
     # configure the plot details
-    plt.xlim(0,100)
-    plt.xlabel('Accuracy (%)', size =24)
+    plt.xlim(0, 100)
+    plt.xlabel('Accuracy (%)', size=24)
     plt.ylabel('')
     ax.tick_params(axis='both', labelsize=22)
     sns.despine()
 
-    return  ax,res
+    return ax, res
 
+
+def plot_sorted_df_column(df, column, n=3, ascending=False):
+    """Takes a column and sorts it and plots the top n.
+    Parameters:
+        df (dataframe)
+        column (str): the column to sort.
+        n (int): the number to return
+        ascending (bool): sort order
+    Returns:
+        Series: the plot and the series. """
+
+    series = sort_df_column(df, column, n, ascending)
+
+    # convert accuracy to percent
+    series = series * 100
+
+    set_style()
+    ax = series.plot('barh', alpha=0.5)
+    plt.xlim(0, 100)
+    plt.xlabel('Accuracy (%)', size=26)
+    plt.ylabel('')
+    ax.tick_params(axis='both', labelsize=24)
+    sns.despine()
+    return ax, series

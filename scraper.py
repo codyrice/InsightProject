@@ -297,7 +297,7 @@ def scrape_all_text(text):
     text = text.encode('utf8').decode('unicode_escape').encode('ascii', 'ignore')
 
     # get rid of the punctuation
-    for p in string.punctuation:
+    for p in remove_strings:
         text = text.replace(p, ' ')
 
     # replace some unwanted stuff.
