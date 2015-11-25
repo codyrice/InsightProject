@@ -1,2 +1,7 @@
 ### Compiled python
 *.pyc
+
+### Raw HTML files
+*data/html/*
+*data/html2/*
+

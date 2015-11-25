@@ -5,6 +5,7 @@ __author__ = 'christopherrivera'
 ########################################################################################################################
 
 import requests
+import grequests
 from bs4 import BeautifulSoup
 from os.path import join
 from multiprocessing.pool import ThreadPool as Pool
@@ -101,6 +102,48 @@ def valid_download_html(url, savepath='/Volumes/Mac/GoGuardianHTMLS', ext='txt',
     with open(filename, 'w') as f:
         f.write(response)
     return old_url, True
+
+def valid_download_urls(urls, savepath='/Volumes/Mac/GoGuardianHTMLS', ext='txt', validate=False):
+    """Validates a url prior to attempting to download
+    Parameters:
+        urls (list): the url names.
+    Return:
+        urls (list): the url names."""
+
+    #need old url to match the data row
+    old_url = []
+    count = 0
+    for url in urls:
+
+        old_url.append(url)
+
+        if validate:
+            valid = validate_url(url)
+        # if not valid download add an http.
+        if not valid:
+            urls[count] = ''.join(['http://', url])
+
+        count += 1
+
+    responses = (grequests.get(url, timeout=2) for url in urls)
+
+    #reset array index
+    count = 0
+    for response in grequests.map(responses):
+        if (response is None):
+            pass
+        else:
+            filename = rename_url(old_url[count], suffix='')
+            filename = '.'.join([filename, ext])
+            filename = join(savepath, filename)
+
+            # save the file to desk
+            with open(filename, 'w') as f:
+                f.write(response.content)
+
+        count += 1
+
+    return None
 
 
 def download_multiple_html_with_pycurl(urls, savepath='/Volumes/Mac/Insight/GoGuardianHTMLS-9-17-2015-b', ext='txt'):
@@ -311,7 +354,7 @@ def scrape_all_text(text):
 def scrape_text_and_count_tags(text):
     """ Uses beautiful soup to scrape all the text from an html text document.
     Parameters. This gets the text for the paragraphs, title, links, img, meta data and header. It also
-    counts the number of tags.  
+    counts the number of tags.
         text (str): Path to the text file (html)
     Returns:
         (str): a string with all the text for parsing later by sklearn.
